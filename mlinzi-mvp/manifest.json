@@ -1,0 +1,21 @@
+{
+  "short_name": "Mlinzi v3",
+  "name": "Mlinzi v3.0 — The Quantum Guardian Portal",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#080816",
+  "theme_color": "#080816",
+  "display": "standalone",
+  "orientation": "portrait"
+}

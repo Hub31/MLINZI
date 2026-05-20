@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080816">
+  <title>Mlinzi v3.0 — The Quantum Guardian Portal</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Hub31 iSense - MLINZI Child Safety Platform. Kenya-First, PQC-Hardened, and ODPC Compliant Parent Dashboard and SOS Emergency tracking system.">
+  
+  <!-- PWA Manifest & Icons -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet.js Interactive Maps CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ==================== 0. PWA OFFLINE BANNER ==================== -->
+  <div id="offline-banner" class="offline-banner hidden">
+    <div class="banner-content">
+      <span class="pulse-red-dot"></span>
+      <span data-sw="Unafanya kazi nje ya mtandao — Mfumo wa SOS wa NFC na QR unaendelea kufanya kazi" data-en="Operating Offline — SOS NFC and QR modes remain fully operational">Unafanya kazi nje ya mtandao — Mfumo wa SOS wa NFC na QR unaendelea kufanya kazi</span>
+    </div>
+  </div>
+
+  <!-- ==================== 1. SPLASH SCREEN ==================== -->
+  <div id="splash-screen" class="splash-screen">
+    <div class="splash-content">
+      <div class="logo-container">
+        <!-- SVG Animated Shield -->
+        <svg class="mlinzi-shield" viewBox="0 0 100 120" width="100" height="120">
+          <defs>
+            <linearGradient id="shield-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00E676" />
+              <stop offset="100%" stop-color="#00A86B" />
+            </linearGradient>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+          <path d="M50 10 L85 25 V65 C85 92 50 110 50 110 C50 110 15 92 15 65 V25 Z" fill="url(#shield-grad)" filter="url(#glow)"/>
+          <path d="M50 20 L75 32 V60 C75 80 50 95 50 95 C50 95 25 80 25 60 V32 Z" fill="#080816"/>
+          <!-- Inner Quantum core -->
+          <circle cx="50" cy="55" r="10" fill="#00E676" class="shield-pulse-core"/>
+        </svg>
+        <div class="quantum-orbits">
+          <div class="orbit o1"></div>
+          <div class="orbit o2"></div>
+        </div>
+      </div>
+      <h1 class="splash-title">MLINZI</h1>
+      <p class="splash-subtitle" data-sw="Mlinzi wa Quantum v3.0" data-en="The Quantum Guardian v3.0">Mlinzi wa Quantum v3.0</p>
+      
+      <div class="attestation-loader">
+        <div class="bar-progress" id="splash-progress"></div>
+      </div>
+      <div class="attestation-status" id="splash-status-text" data-sw="Kuhakiki Chipu ya Usalama ya TPM..." data-en="Verifying TPM Security Chip...">Kuhakiki Chipu ya Usalama ya TPM...</div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. APP CONTAINER ==================== -->
+  <div id="app-container" class="app-container blur-content hidden">
+
+    <!-- Global App Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <svg class="header-logo" viewBox="0 0 100 120" width="32" height="38">
+          <path d="M50 10 L85 25 V65 C85 92 50 110 50 110 C50 110 15 92 15 65 V25 Z" fill="#00E676"/>
+          <path d="M50 22 L75 34 V60 C75 80 50 95 50 95 C50 95 25 80 25 60 V34 Z" fill="#080816"/>
+          <circle cx="50" cy="55" r="8" fill="#00E676"/>
+        </svg>
+        <div>
+          <h2>MLINZI <span class="badge-v3">v3.0</span></h2>
+          <span class="tagline">QUANTUM GUARDIAN</span>
+        </div>
+      </div>
+
+      <!-- Live Telemetry Status Bar -->
+      <div class="telemetry-bar">
+        <div class="tel-item" title="Device Health Status">
+          <span class="tel-icon">🛡️</span>
+          <span class="tel-value" id="tel-tpm">TPM OK</span>
+        </div>
+        <div class="tel-item" title="Device Battery level">
+          <span class="tel-icon">🔋</span>
+          <span class="tel-value" id="tel-battery">72%</span>
+        </div>
+        <div class="tel-item" title="Network Signal Strength">
+          <span class="tel-icon">📶</span>
+          <span class="tel-value" id="tel-signal">Strong</span>
+        </div>
+        <div class="tel-item divider"></div>
+        <!-- Language Switcher -->
+        <button class="lang-switch-btn" id="lang-toggle-btn" aria-label="Badilisha lugha">
+          <span class="lang-flag">🇰🇪</span> <span id="lang-label">Kiswahili</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Dynamic Workspace Grid -->
+    <main class="app-body">
+      
+      <!-- Side Tab Navigation -->
+      <nav class="side-nav">
+        <button class="nav-tab active" data-tab="tab-dashboard">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-text" data-sw="Dashibodi" data-en="Dashboard">Dashibodi</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-livemap">
+          <span class="nav-icon">🗺️</span>
+          <span class="nav-text" data-sw="Ramani Live" data-en="Live Map">Ramani Live</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-alerts">
+          <span class="nav-icon">🚨</span>
+          <span class="nav-text" data-sw="Dharura & Kumbukumbu" data-en="Alerts & History">Dharura & Kumbukumbu</span>
+          <span class="alert-count-badge hidden" id="global-alert-badge">0</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-qrrescue">
+          <span class="nav-icon">🆘</span>
+          <span class="nav-text" data-sw="QR Okoa Child" data-en="QR Rescue Finder">QR Okoa Child</span>
+        </button>
+        <button class="nav-tab" data-tab="tab-settings">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-text" data-sw="Mipangilio" data-en="Settings">Mipangilio</span>
+        </button>
+      </nav>
+
+      <!-- Central View Workspace -->
+      <section class="workspace-area">
+
+        <!-- ==================== TAB 1: DASHBOARD ==================== -->
+        <div id="tab-dashboard" class="tab-content active-tab">
+          <div class="dashboard-grid">
+            
+            <!-- Column Left: Telemetry Profile & Quick SOS -->
+            <div class="dash-col-left">
+              <div class="card glassmorphic child-status-card">
+                <div class="card-header">
+                  <div class="child-avatar-wrap">
+                    <div class="child-avatar" id="dash-avatar-initial">A</div>
+                    <span class="status-indicator online" id="dash-online-dot"></span>
+                  </div>
+                  <div>
+                    <h3 id="dash-child-name">Amara</h3>
+                    <p class="child-age-pill" id="dash-child-age">Range: 7-10</p>
+                  </div>
+                  <div class="blockchain-badge">
+                    <span class="pulse-green-dot"></span> SECURE
+                  </div>
+                </div>
+                
+                <div class="telemetry-grid">
+                  <div class="telemetry-tile">
+                    <span class="tile-label" data-sw="Ukanda wa sasa" data-en="Current Zone">Ukanda wa sasa</span>
+                    <span class="tile-value text-green" id="dash-zone-name">🟢 Shule</span>
+                  </div>
+                  <div class="telemetry-tile">
+                    <span class="tile-label" data-sw="Mahali halisi" data-en="Location Address">Mahali halisi</span>
+                    <span class="tile-value address-value" id="dash-coords">Westlands, Nairobi</span>
+                  </div>
+                  <div class="telemetry-tile">
+                    <span class="tile-label" data-sw="Mwisho kusasishwa" data-en="Last Updated">Mwisho kusasishwa</span>
+                    <span class="tile-value" id="dash-last-updated">30s ago</span>
+                  </div>
+                  <div class="telemetry-tile">
+                    <span class="tile-label" data-sw="Usalama wa Kitambulisho" data-en="Identity Security">Usalama wa Kitambulisho</span>
+                    <span class="tile-value text-gold" id="dash-crypto-algorithm">ML-DSA-65 Verified</span>
+                  </div>
+                </div>
+
+                <div class="zone-pills-bar">
+                  <span class="zone-pill active-pill" id="pill-home">🟢 Nyumbani</span>
+                  <span class="zone-pill active-pill" id="pill-school">🟢 Shuleni</span>
+                  <span class="zone-pill inactive-pill" id="pill-custom">🔴 Eneo la Nje</span>
+                </div>
+              </div>
+
+              <!-- GIANT SOS BUTTON CARD -->
+              <div class="card glassmorphic emergency-sos-card">
+                <h3 class="card-title text-center text-accent" data-sw="DHARURA YA HARAKA — SOS" data-en="IMMEDIATE EMERGENCY — SOS">DHARURA YA HARAKA — SOS</h3>
+                <p class="text-muted text-center" data-sw="Bonyeza na ushikilie kwa sekunde 3 ili kuwasha king'ora cha dharura." data-en="Press and hold for 3 seconds to trigger emergency sequence.">Bonyeza na ushikilie kwa sekunde 3 ili kuwasha king'ora cha dharura.</p>
+                
+                <div class="sos-trigger-container">
+                  <button class="sos-btn-giant" id="sos-trigger-btn">
+                    <span class="sos-inner-circle">
+                      <span class="sos-text">SOS</span>
+                    </span>
+                  </button>
+                  <!-- Circular Progress Ring for Hold Indicator -->
+                  <svg class="progress-ring" width="180" height="180">
+                    <circle class="progress-ring__circle" stroke="#FF0000" stroke-width="8" fill="transparent" r="80" cx="90" cy="90"/>
+                  </svg>
+                </div>
+                
+                <div class="hold-indicator" id="hold-instruction-text" data-sw="Shikilia kitufe kuanza..." data-en="Hold button to start...">Shikilia kitufe kuanza...</div>
+                
+                <!-- Live SOS Status Banner inside card when triggered -->
+                <div class="sos-alert-banner hidden" id="sos-active-banner">
+                  <span class="siren-light"></span>
+                  <div class="sos-banner-content">
+                    <strong data-sw="🆘 DHARURA IMEWASHWA!" data-en="🆘 EMERGENCY SOS ACTIVE!">🆘 DHARURA IMEWASHWA!</strong>
+                    <span data-sw="Inatuma data kwa n8n & Polisi..." data-en="Broadcasting payload to n8n & Police...">Inatuma data kwa n8n & Polisi...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Column Right: Map Preview & Timeline -->
+            <div class="dash-col-right">
+              
+              <!-- Map Mini Preview Card -->
+              <div class="card glassmorphic preview-map-card">
+                <div class="card-header">
+                  <h3 class="card-title" data-sw="Ramani Live" data-en="Live Tracking Map">Ramani Live</h3>
+                  <button class="btn-sm btn-outline btn-refresh-gps" id="dash-refresh-map-btn" data-sw="Sasisha GPS" data-en="Refresh GPS">Sasisha GPS</button>
+                </div>
+                <div class="map-container-wrap">
+                  <div id="dash-leaflet-map" class="map-elem"></div>
+                  <!-- Map Privacy Mask info overlay -->
+                  <div class="map-privacy-overlay" id="map-privacy-shield">
+                    <span class="shield-lock-icon">🔒</span>
+                    <span data-sw="Ufaragha Ulioimarishwa: Raundi ya mita 500 inatumika. (Sheria ya DPA 2019)" data-en="Privacy Enabled: 500m blur applied. (Kenya DPA Act 2019)">Ufaragha Ulioimarishwa: Raundi ya mita 500 inatumika. (Sheria ya DPA 2019)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Daily Activity Timeline -->
+              <div class="card glassmorphic timeline-card">
+                <div class="card-header">
+                  <h3 class="card-title" data-sw="Kumbukumbu za Leo" data-en="Today's Activity Logs">Kumbukumbu za Leo</h3>
+                  <span class="timeline-badge" data-sw="Salama" data-en="Secure">Salama</span>
+                </div>
+                <div class="timeline-stream" id="dashboard-timeline">
+                  <!-- Generated dynamically in app.js -->
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ==================== TAB 2: LIVE MAP WORKSPACE ==================== -->
+        <div id="tab-livemap" class="tab-content">
+          <div class="livemap-workspace">
+            <!-- Full Interactive Map Sidebar Controller -->
+            <div class="map-sidebar glassmorphic">
+              <h3 data-sw="Kidhibiti cha Usimulizi" data-en="Simulation Control Center">Kidhibiti cha Usimulizi</h3>
+              <p class="text-muted" data-sw="Mtumie mtoto wako safari ya kusafiri na uone geofence ikitenda kazi kwa sekunde!" data-en="Trigger child telemetry paths to see real-time geofencing in action!">Mtumie mtoto wako safari ya kusafiri na uone geofence ikitenda kazi kwa sekunde!</p>
+              
+              <div class="sim-actions-grid">
+                <button class="btn btn-outline text-left" id="sim-btn-walk-school">
+                  <span>🚶</span>
+                  <div>
+                    <strong data-sw="Tembea Shule" data-en="Walk to School">Tembea Shule</strong>
+                    <small data-sw="Inavuka geofence ya shule" data-en="Safe path trigger">Inavuka geofence ya shule</small>
+                  </div>
+                </button>
+                <button class="btn btn-outline text-left" id="sim-btn-escape-zone">
+                  <span>🏃</span>
+                  <div>
+                    <strong data-sw="Vunja Kifungo" data-en="Breach Geofence">Vunja Kifungo</strong>
+                    <small data-sw="Usimulizi wa kutoroka shule" data-en="Exiting school early simulation">Usimulizi wa kutoroka shule</small>
+                  </div>
+                </button>
+                <button class="btn btn-outline text-left" id="sim-btn-device-tamper">
+                  <span>⚠️</span>
+                  <div>
+                    <strong data-sw="Chipu Kuguswa" data-en="TPM Tamper Alert">Chipu Kuguswa</strong>
+                    <small data-sw="Kuvunja heshima ya vifaa" data-en="Simulate TPM PCR breach">Kuvunja heshima ya vifaa</small>
+                  </div>
+                </button>
+                <button class="btn btn-outline text-left" id="sim-btn-reset-map">
+                  <span>🔄</span>
+                  <div>
+                    <strong data-sw="Weka Upya Kila Kitu" data-en="Reset Map Simulation">Weka Upya Kila Kitu</strong>
+                    <small data-sw="Futa vitendo vyote" data-en="Return child to home">Futa vitendo vyote</small>
+                  </div>
+                </button>
+              </div>
+
+              <div class="privacy-controller-box">
+                <h4 data-sw="Kiwango cha Ufaragha cha GPS" data-en="GPS Privacy Precision">Kiwango cha Ufaragha cha GPS</h4>
+                <div class="radio-group">
+                  <label class="radio-container">
+                    <input type="radio" name="gps-precision" value="standard" checked id="precision-standard">
+                    <span class="radio-label">
+                      <strong data-sw="Ufaragha Kamili (DPA)" data-en="Standard Obfuscated (DPA)">Ufaragha Kamili (DPA)</strong>
+                      <small data-sw="Mita 500 ukungu, inazuia kufuatiliwa kwa siri" data-en="500m blur applied to protect real coords">Mita 500 ukungu, inazuia kufuatiliwa kwa siri</small>
+                    </span>
+                  </label>
+                  <label class="radio-container">
+                    <input type="radio" name="gps-precision" value="critical" id="precision-critical">
+                    <span class="radio-label">
+                      <strong data-sw="Eneo Halisi (DHARURA ONLY)" data-en="Exact Location (SOS Only)">Eneo Halisi (DHARURA ONLY)</strong>
+                      <small data-sw="Inaruhusu kuona mahali halisi sekunde hii" data-en="Real-time precision GPS tracking enabled">Inaruhusu kuona mahali halisi sekunde hii</small>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Full Interactive Map Wrapper -->
+            <div class="full-map-wrap">
+              <div id="full-leaflet-map" class="map-elem"></div>
+              
+              <!-- Privacy mode floating status -->
+              <div class="floating-map-badge font-space" id="full-map-floating-badge">
+                <span class="pulse-green-dot"></span> DPA SAFE MESH: ACTIVE (500M BLUR)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 3: ALERTS & HISTORY ==================== -->
+        <div id="tab-alerts" class="tab-content">
+          <div class="alerts-history-container">
+            <div class="alerts-sidebar glassmorphic">
+              <h3 data-sw="Chuja Dharura" data-en="Filter Alerts">Chuja Dharura</h3>
+              <div class="filter-buttons">
+                <button class="btn btn-filter active-filter" data-filter="all" data-sw="Zote" data-en="All">Zote</button>
+                <button class="btn btn-filter" data-filter="critical" data-sw="Kuu (SOS)" data-en="Critical (SOS)">Kuu (SOS)</button>
+                <button class="btn btn-filter" data-filter="high" data-sw="Juu (Vunja Kifungo)" data-en="High Breaches">Juu (Vunja Kifungo)</button>
+                <button class="btn btn-filter" data-filter="normal" data-sw="Kawaida" data-en="Normal">Kawaida</button>
+              </div>
+              <div class="alerts-stats-card">
+                <div class="stat-cell">
+                  <span class="num text-accent" id="cnt-critical">0</span>
+                  <span class="lbl" data-sw="SOS" data-en="SOS Events">SOS</span>
+                </div>
+                <div class="stat-cell">
+                  <span class="num text-gold" id="cnt-high">0</span>
+                  <span class="lbl" data-sw="Vunja mipaka" data-en="Geofence">Vunja mipaka</span>
+                </div>
+                <div class="stat-cell">
+                  <span class="num text-green" id="cnt-normal">0</span>
+                  <span class="lbl" data-sw="Kawaida" data-en="Logs">Kawaida</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="alerts-feed-wrapper">
+              <div class="alerts-header-bar">
+                <h3 data-sw="Kumbukumbu Zote za Usalama" data-en="Security Audit Trail">Kumbukumbu Zote za Usalama</h3>
+                <button class="btn-sm btn-danger-outline" id="clear-all-alerts-btn" data-sw="Futa Zote" data-en="Clear All Logs">Futa Zote</button>
+              </div>
+              
+              <div class="alerts-feed-stream" id="alerts-master-feed">
+                <!-- Dynamically generated alerts go here -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 4: QR RESCUE FINDER PORTAL ==================== -->
+        <div id="tab-qrrescue" class="tab-content">
+          <div class="qr-rescue-container">
+            <div class="card glassmorphic qr-setup-panel">
+              <h3 data-sw="Mlinzi QR Okoa" data-en="Mlinzi Emergency QR Generator">Mlinzi Emergency QR Generator</h3>
+              <p class="text-muted" data-sw="Tengeneza kadi ya QR yenye ulinzi wa faragha. Watu wanaompata mtoto aliyepotea wanaweza kuiskani kuwataarifu wazazi mara moja." data-en="Generate a privacy-safe smart QR card. Anyone finding a lost child scans this card to instantly pinpoint and notify the parents.">Tengeneza kadi ya QR yenye ulinzi wa faragha. Watu wanaompata mtoto aliyepotea wanaweza kuiskani kuwataarifu wazazi mara moja.</p>
+              
+              <div class="qr-preview-box">
+                <div class="qr-card-rendered" id="qr-card-to-print">
+                  <div class="qr-card-brand">
+                    <span class="shield-mini-icon">🛡️</span>
+                    <strong>MLINZI EMERGENCY CARD</strong>
+                  </div>
+                  
+                  <div class="qr-card-body">
+                    <!-- Leaflet custom canvas placeholder for QR -->
+                    <div class="qr-code-holder">
+                      <canvas id="qr-canvas"></canvas>
+                      <div class="qr-logo-overlay">M</div>
+                    </div>
+                    
+                    <div class="qr-card-instructions">
+                      <h4 data-sw="UKIMPATA MTOTO HUYU" data-en="IF YOU FIND THIS CHILD">UKIMPATA MTOTO HUYU</h4>
+                      <p data-sw="Skani nambari hii ya QR kwa usalama au Gusa nambari ya NFC" data-en="Scan QR or Tap NFC for immediate parent contact">Skani nambari hii ya QR kwa usalama au Gusa nambari ya NFC</p>
+                      <small class="dpa-tag">KENYA DPA SECTION 41 COMPLIANT</small>
+                    </div>
+                  </div>
+
+                  <div class="qr-card-footer">
+                    <span id="qr-card-child-name">AMARA (7-10Y)</span>
+                    <span class="pqc-indicator">TPM ATTESTED</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="qr-actions-row">
+                <button class="btn btn-primary" id="btn-simulate-qr-scan" data-sw="Iga Kuskani QR kama Msamaria Mwema" data-en="Simulate QR Scan (Good Samaritan View)">Iga Kuskani QR kama Msamaria Mwema</button>
+                <button class="btn btn-outline" onclick="window.print()" data-sw="Chapisha Kadi" data-en="Print Card">Chapisha Kadi</button>
+              </div>
+            </div>
+
+            <!-- SAMARITAN PREVIEW OVERLAY MODAL / CONTAINER -->
+            <div class="samaritan-portal-box glassmorphic hidden" id="samaritan-portal-view">
+              <div class="samaritan-header">
+                <span class="sos-pulse-light"></span>
+                <div>
+                  <h3 data-sw="🆘 Portal ya Dharura ya Mlinzi" data-en="🆘 Mlinzi Emergency Portal">🆘 Mlinzi Emergency Portal</h3>
+                  <small data-sw="Njia salama ya kumsaidia mtoto aliyepotea" data-en="Verified Privacy-First Rescue Portal">Njia salama ya kumsaidia mtoto aliyepotea</small>
+                </div>
+                <button class="btn-close-samaritan" id="close-samaritan-btn">×</button>
+              </div>
+
+              <div class="samaritan-body">
+                <div class="samaritan-alert-box">
+                  <h4 data-sw="Je, umempata mtoto huyu?" data-en="Have you found this child?">Je, umempata mtoto huyu?</h4>
+                  <p data-sw="Ukurasa huu unaruhusu kuwasiliana na mzazi mara moja. Mahali ulipo sasa hivi itatambuliwa kusaidia kupata mtoto huyu." data-en="This portal connects you instantly to the child's parents. Your location will be securely shared only with the parents.">Ukurasa huu unaruhusu kuwasiliana na mzazi mara moja. Mahali ulipo sasa hivi itatambuliwa kusaidia kupata mtoto huyu.</p>
+                </div>
+
+                <div class="rescue-profile-grid">
+                  <div class="prof-tile">
+                    <span class="lbl" data-sw="Jina la Kwanza" data-en="First Name">Jina la Kwanza</span>
+                    <span class="val" id="samaritan-child-name">AMARA</span>
+                  </div>
+                  <div class="prof-tile">
+                    <span class="lbl" data-sw="Kikundi cha Damu" data-en="Blood Group">Kikundi cha Damu</span>
+                    <span class="val text-accent" id="samaritan-child-blood">O+</span>
+                  </div>
+                  <div class="prof-tile span-2">
+                    <span class="lbl" data-sw="Mizio ya Matibabu" data-en="Medical Conditions / Alerts">Mizio ya Matibabu</span>
+                    <span class="val text-gold" id="samaritan-child-medical">Asthma — Carries Inhaler</span>
+                  </div>
+                </div>
+
+                <div class="dpa-security-notice">
+                  <strong>🔒 FARAGHA YAKO IMELINDWA (KENYA DPA 2019)</strong>
+                  <p data-sw="Majina ya mwisho ya mtoto, shule, na nyumbani havionyeshwi ili kuhakikisha usalama wa mtoto na familia yake." data-en="No surnames, specific addresses, or school names are exposed to prevent illegal child interception.">Majina ya mwisho ya mtoto, shule, na nyumbani havionyeshwi ili kuhakikisha usalama wa mtoto na familia yake.</p>
+                </div>
+
+                <div class="samaritan-actions">
+                  <button class="btn btn-danger w-100" id="samaritan-call-parent-btn">
+                    📞 <span data-sw="Piga Simu ya Mzazi (Masked)" data-en="Call Parent (Secure Rate-Limited)">Piga Simu ya Mzazi (Masked)</span>
+                  </button>
+                  <a href="tel:+254720860034" class="btn btn-outline w-100 text-center">
+                    📞 Piga Simu ya Dharura (+254 720 860034)
+                  </a>
+                  <button class="btn btn-primary w-100" id="samaritan-share-gps-btn" data-sw="Shiriki Mahali Ulipo na Wazazi" data-en="Share My GPS with Parents">Shiriki Mahali Ulipo na Wazazi</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 5: PORTAL SETTINGS ==================== -->
+        <div id="tab-settings" class="tab-content">
+          <div class="settings-workspace">
+            <div class="card glassmorphic">
+              <h3 class="card-title">👤 Parent Profile</h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label data-sw="Jina Kamili la Mzazi" data-en="Full Parent Name">Jina Kamili la Mzazi</label>
+                  <input type="text" id="set-parent-name" class="form-control" value="Jane Doe">
+                </div>
+                <div class="form-group">
+                  <label data-sw="Namba ya Simu (+254)" data-en="Phone Number (+254)">Namba ya Simu (+254)</label>
+                  <input type="text" id="set-parent-phone" class="form-control" value="+254 720 860034">
+                </div>
+                <div class="form-group">
+                  <label data-sw="Uhusiano na Mtoto" data-en="Relationship to Child">Uhusiano na Mtoto</label>
+                  <select id="set-parent-relation" class="form-control">
+                    <option value="Mother">Mother / Mama</option>
+                    <option value="Father">Father / Baba</option>
+                    <option value="Guardian">Guardian / Mlezi</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label data-sw="Kiwango cha Utawala kinachopendekezwa" data-en="Preferred Emergency Responder">Kiwango cha Utawala kinachopendekezwa</label>
+                  <select id="set-responder" class="form-control">
+                    <option value="police">Nairobi Police 999</option>
+                    <option value="dci">DCI Kenya Child Unit</option>
+                    <option value="chief">Local Chief / Mzee wa Mtaa</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="card glassmorphic">
+              <h3 class="card-title">👧 Child & Wearable Details</h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label data-sw="Jina la Kwanza la Mtoto" data-en="Child's First Name">Jina la Kwanza la Mtoto</label>
+                  <input type="text" id="set-child-name" class="form-control" value="Amara">
+                </div>
+                <div class="form-group">
+                  <label data-sw="Kikundi cha umri" data-en="Age Range">Kikundi cha umri</label>
+                  <select id="set-child-age" class="form-control">
+                    <option value="3-6">3 - 6 Years</option>
+                    <option value="7-10" selected>7 - 10 Years</option>
+                    <option value="11-14">11 - 14 Years</option>
+                    <option value="15-18">15 - 18 Years</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label data-sw="Kikundi cha Damu" data-en="Blood Group">Kikundi cha Damu</label>
+                  <select id="set-child-blood" class="form-control">
+                    <option value="O+" selected>O Positive (O+)</option>
+                    <option value="A+">A Positive (A+)</option>
+                    <option value="B+">B Positive (B+)</option>
+                    <option value="AB+">AB Positive (AB+)</option>
+                    <option value="Unknown">Unknown / Sijui</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label data-sw="Kitambulisho cha Kifaa (Wearable ID)" data-en="Wearable Device ID">Kitambulisho cha Kifaa (Wearable ID)</label>
+                  <input type="text" id="set-device-id" class="form-control" value="MLZ-WATCH-001" disabled>
+                </div>
+                <div class="form-group span-2">
+                  <label data-sw="Mizio na Taarifa za Matibabu" data-en="Medical Conditions & Alerts">Mizio na Taarifa za Matibabu</label>
+                  <input type="text" id="set-child-medical" class="form-control" value="Asthma — carries inhaler">
+                </div>
+              </div>
+            </div>
+
+            <!-- n8n Gateway Integration Simulator Settings -->
+            <div class="card glassmorphic border-gold">
+              <h3 class="card-title text-gold">🔗 n8n Production Webhook Gateway</h3>
+              <p class="text-muted" data-sw="Weka anwani yako ya webhook ya n8n ili kutuma data halisi ya SOS na matukio ya geofence kwa ajili ya kufanyia majaribio!" data-en="Configure your production n8n webhook URL to route real-time SOS alerts and geofencing telemetry directly through your backend workflows!">Configure your production n8n webhook URL to route real-time SOS alerts and geofencing telemetry directly through your backend workflows!</p>
+              
+              <div class="form-group">
+                <label data-sw="Anwani ya Webhook ya n8n" data-en="n8n Webhook Endpoint URL">Anwani ya Webhook ya n8n</label>
+                <input type="url" id="set-n8n-webhook-url" class="form-control font-space" placeholder="https://n8n.yourdomain.com/webhook/mlinzi-attested-gateway" value="https://n8n.hub31.xyz/webhook/mlinzi-attested-gateway">
+              </div>
+              
+              <div class="form-group checkbox-group margin-top-1">
+                <label class="checkbox-container">
+                  <input type="checkbox" id="set-n8n-active" checked>
+                  <span class="checkbox-label" data-sw="Tuma dharura zote kwa n8n kiotomatiki" data-en="Route active alert payloads to this webhook">Tuma dharura zote kwa n8n kiotomatiki</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Privacy settings conforming to DPA 2019 -->
+            <div class="card glassmorphic">
+              <h3 class="card-title">🔒 Kenya Data Protection & Privacy</h3>
+              <div class="settings-dpa-matrix">
+                <div class="dpa-row">
+                  <div>
+                    <strong data-sw="Ufaragha Tofauti (Differential Privacy)" data-en="Differential Privacy Noise (ε)">Ufaragha Tofauti (Differential Privacy)</strong>
+                    <p class="text-muted" data-sw="Weka kelele kidogo za GPS ili kuzuia kufuatiliwa kwa siri." data-en="Add subtle noise parameters to geographic outputs to secure raw database coordinates.">Add subtle noise parameters to geographic outputs to secure raw database coordinates.</p>
+                  </div>
+                  <div class="dpa-action-wrap">
+                    <input type="range" min="0.01" max="1" step="0.05" value="0.1" class="slider" id="dpa-epsilon-slider">
+                    <span class="badge-v3 font-space">ε=<span id="epsilon-value">0.10</span></span>
+                  </div>
+                </div>
+
+                <div class="dpa-row">
+                  <div>
+                    <strong data-sw="Kufuta Data Kiotomatiki (Auto-Purge Logs)" data-en="Auto-Purge Security Logs">Kufuta Data Kiotomatiki (Auto-Purge Logs)</strong>
+                    <p class="text-muted" data-sw="Futa kumbukumbu zote za maeneo kila baada ya masaa 72." data-en="Automatically wipe trajectory history every 72 hours for absolute GDPR/DPA safety.">Automatically wipe trajectory history every 72 hours for absolute GDPR/DPA safety.</p>
+                  </div>
+                  <div class="dpa-action-wrap">
+                    <label class="switch">
+                      <input type="checkbox" id="dpa-auto-purge" checked>
+                      <span class="slider-round"></span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="dpa-row">
+                  <div>
+                    <strong data-sw="Hamisha Data Yangu" data-en="Export My Data">Hamisha Data Yangu</strong>
+                    <p class="text-muted" data-sw="Pakua faili ya JSON yenye taarifa zako zote na ridhaa zako." data-en="Download a detailed JSON bundle of all profile, consent status, and audit histories.">Download a detailed JSON bundle of all profile, consent status, and audit histories.</p>
+                  </div>
+                  <div class="dpa-action-wrap">
+                    <button class="btn btn-outline" id="btn-export-dpa-data" data-sw="Pakua JSON" data-en="Export JSON">Pakua JSON</button>
+                  </div>
+                </div>
+
+                <div class="dpa-row">
+                  <div>
+                    <strong class="text-accent" data-sw="Futa Akaunti Yangu Kabisa" data-en="Completely Delete My Account">Futa Akaunti Yangu Kabisa</strong>
+                    <p class="text-muted" data-sw="Hatua isiyoweza kubadilishwa. Hii itafuta ridhaa na data zote kwenye blockchain na kifaa." data-en="Irreversible action. Wipe off entire consents, wearable connections, and personal identifiers.">Irreversible action. Wipe off entire consents, wearable connections, and personal identifiers.</p>
+                  </div>
+                  <div class="dpa-action-wrap">
+                    <button class="btn btn-danger" id="btn-delete-account-dpa" data-sw="Futa Kila Kitu" data-en="Wipe Portal">Wipe Portal</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Save Buttons -->
+            <div class="settings-actions">
+              <button class="btn btn-primary" id="btn-save-settings" data-sw="Hifadhi Mipangilio Yote" data-en="Save All Configurations">Hifadhi Mipangilio Yote</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+  </div>
+
+  <!-- ==================== 3. ONBOARDING OVERLAY WIZARD ==================== -->
+  <div id="onboarding-overlay" class="onboarding-overlay hidden">
+    <div class="onboarding-modal glassmorphic">
+      
+      <!-- Stepper Indicator -->
+      <div class="onboarding-stepper">
+        <span class="step-dot active" data-step="1">1</span>
+        <span class="step-line"></span>
+        <span class="step-dot" data-step="2">2</span>
+        <span class="step-line"></span>
+        <span class="step-dot" data-step="3">3</span>
+        <span class="step-line"></span>
+        <span class="step-dot" data-step="4">4</span>
+        <span class="step-line"></span>
+        <span class="step-dot" data-step="5">5</span>
+      </div>
+
+      <!-- ONBOARDING STEP 1: Language selection -->
+      <div class="onboard-step active-step" id="onboard-step-1">
+        <h2 data-sw="Karibu Kwenye MLINZI" data-en="Welcome to MLINZI">Karibu Kwenye MLINZI</h2>
+        <p data-sw="Kuchagua lugha inayofaa kuendelea na usanidi wa usalama wa mtoto wako." data-en="Select your preferred language to begin your child safety setup.">Kuchagua lugha inayofaa kuendelea na usanidi wa usalama wa mtoto wako.</p>
+        
+        <div class="language-selection-grid">
+          <button class="lang-big-btn selected" data-lang="sw">
+            <span class="flag">🇰🇪</span>
+            <span class="name">Kiswahili</span>
+            <span class="desc">Default Kenya Locale</span>
+          </button>
+          <button class="lang-big-btn" data-lang="en">
+            <span class="flag">🇬🇧</span>
+            <span class="name">English</span>
+            <span class="desc">International Standard</span>
+          </button>
+        </div>
+
+        <div class="modal-footer justify-end">
+          <button class="btn btn-primary next-step-btn" data-sw="Endelea" data-en="Continue">Endelea</button>
+        </div>
+      </div>
+
+      <!-- ONBOARDING STEP 2: Parent Identity -->
+      <div class="onboard-step" id="onboard-step-2">
+        <h2 data-sw="Sajili Mzazi / Mlezi" data-en="Parent / Guardian Registry">Sajili Mzazi / Mlezi</h2>
+        <p data-sw="Kulingana na Sheria ya DPA Section 33, ni lazima kuthibitisha mzazi." data-en="In compliance with Kenya DPA Section 33, we must verify the guardian's profile.">Kulingana na Sheria ya DPA Section 33, ni lazima kuthibitisha mzazi.</p>
+        
+        <div class="form-grid margin-top-1">
+          <div class="form-group span-2">
+            <label data-sw="Jina Kamili la Mzazi" data-en="Full Legal Name">Jina Kamili la Mzazi</label>
+            <input type="text" id="ob-parent-name" class="form-control" placeholder="Jane Doe" required>
+          </div>
+          <div class="form-group">
+            <label data-sw="Namba ya Kitaifa ya Kitambulisho / Huduma" data-en="National ID / Huduma Number">Namba ya Kitaifa ya Kitambulisho / Huduma</label>
+            <input type="text" id="ob-parent-id" class="form-control" placeholder="HUDUMA-123456" required>
+          </div>
+          <div class="form-group">
+            <label data-sw="Namba ya Simu (+254)" data-en="Phone Number (+254)">Namba ya Simu (+254)</label>
+            <input type="tel" id="ob-parent-phone" class="form-control" placeholder="+254 720 860034" required>
+          </div>
+          <div class="form-group span-2">
+            <label data-sw="Uhusiano na Mtoto" data-en="Relationship to Child">Uhusiano na Mtoto</label>
+            <div class="radio-horizontal-group">
+              <label class="radio-pill"><input type="radio" name="ob-parent-rel" value="Mother" checked> <span data-sw="Mama" data-en="Mother">Mama</span></label>
+              <label class="radio-pill"><input type="radio" name="ob-parent-rel" value="Father"> <span data-sw="Baba" data-en="Father">Baba</span></label>
+              <label class="radio-pill"><input type="radio" name="ob-parent-rel" value="Guardian"> <span data-sw="Mlezi" data-en="Guardian">Mlezi</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer justify-between">
+          <button class="btn btn-outline prev-step-btn" data-sw="Rudi Nyuma" data-en="Back">Rudi Nyuma</button>
+          <button class="btn btn-primary" id="btn-ob-step2-next" data-sw="Thibitisha OTP" data-en="Verify OTP">Thibitisha OTP</button>
+        </div>
+      </div>
+
+      <!-- ONBOARDING STEP 2.5: OTP Simulation Modal (Inside step 2 view dynamically triggered) -->
+      <div class="onboard-step hidden-step" id="onboard-step-2-otp">
+        <h2 data-sw="Thibitisha Nambari ya Simu" data-en="SMS OTP Verification">Thibitisha Nambari ya Simu</h2>
+        <p data-sw="Tumetuma nambari ya siri ya OTP kwenye simu yako kupitia AfricasTalking SMS gateway." data-en="An ephemeral authentication code was sent to your phone via AfricasTalking SMS gateway.">Tumetuma nambari ya siri ya OTP kwenye simu yako kupitia AfricasTalking SMS gateway.</p>
+        
+        <div class="otp-input-wrap">
+          <input type="text" maxlength="1" class="otp-box" id="otp-1" value="3">
+          <input type="text" maxlength="1" class="otp-box" id="otp-2" value="1">
+          <input type="text" maxlength="1" class="otp-box" id="otp-3" value="0">
+          <input type="text" maxlength="1" class="otp-box" id="otp-4" value="0">
+        </div>
+
+        <div class="otp-sms-simulated">
+          <strong>💬 SMS:</strong> [Mlinzi OTP Code] <code>3100</code>. <span data-sw="Nambari hii inatumika kwa dakika 5 tu." data-en="Valid for 5 minutes. Do not share with third parties.">Nambari hii inatumika kwa dakika 5 tu. Do not share with third parties.</span>
+        </div>
+
+        <div class="modal-footer justify-between">
+          <button class="btn btn-outline" id="btn-otp-back" data-sw="Kuhariri Namba" data-en="Edit Number">Kuhariri Namba</button>
+          <button class="btn btn-primary" id="btn-ob-otp-verify" data-sw="Thibitisha Namba" data-en="Confirm Verification">Thibitisha Namba</button>
+        </div>
+      </div>
+
+      <!-- ONBOARDING STEP 3: Child Registration -->
+      <div class="onboard-step" id="onboard-step-3">
+        <h2 data-sw="Sajili Mtoto Wako" data-en="Child Safety Registry">Sajili Mtoto Wako</h2>
+        <p data-sw="Tunalinda taarifa za mtoto chini ya sheria ya DPA Section 41 (Ufaragha kwa Usanifu)." data-en="Strict compliance with Kenya DPA Section 41 (Privacy-by-Design). Surnames are encrypted.">Tunalinda taarifa za mtoto chini ya sheria ya DPA Section 41 (Ufaragha kwa Usanifu).</p>
+        
+        <div class="form-grid margin-top-1">
+          <div class="form-group">
+            <label data-sw="Jina la Kwanza la Mtoto" data-en="Child's First Name">Jina la Kwanza la Mtoto</label>
+            <input type="text" id="ob-child-name" class="form-control" placeholder="Amara" required>
+          </div>
+          <div class="form-group">
+            <label data-sw="Kikundi cha umri" data-en="Age Range Selection">Kikundi cha umri</label>
+            <select id="ob-child-age" class="form-control">
+              <option value="3-6">3 - 6 Years</option>
+              <option value="7-10" selected>7 - 10 Years (Primary School)</option>
+              <option value="11-14">11 - 14 Years</option>
+              <option value="15-18">15 - 18 Years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-sw="Kikundi cha Damu" data-en="Blood Group">Kikundi cha Damu</label>
+            <select id="ob-child-blood" class="form-control">
+              <option value="O+" selected>O+ (Positive)</option>
+              <option value="O-">O- (Negative)</option>
+              <option value="A+">A+</option>
+              <option value="B+">B+</option>
+              <option value="AB+">AB+</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label data-sw="Mizio ya Matibabu" data-en="Critical Medical Alerts">Mizio ya Matibabu</label>
+            <input type="text" id="ob-child-medical" class="form-control" placeholder="Asthma — carries inhaler">
+          </div>
+        </div>
+
+        <div class="modal-footer justify-between">
+          <button class="btn btn-outline prev-step-btn" data-sw="Rudi Nyuma" data-en="Back">Rudi Nyuma</button>
+          <button class="btn btn-primary next-step-btn" data-sw="Endelea" data-en="Continue">Endelea</button>
+        </div>
+      </div>
+
+      <!-- ONBOARDING STEP 4: Device Pairing (NFC / QR Simulation) -->
+      <div class="onboard-step" id="onboard-step-4">
+        <h2 data-sw="Oanisha Wearable / Kadi" data-en="Secure Device Pairing">Oanisha Wearable / Kadi</h2>
+        <p data-sw="Gusa saa ya mlinzi kwenye NFC ya simu yako au skani msimbo wa QR wa kifaa." data-en="Scan child device QR or hold your wearable against the device's NFC chip.">Gusa saa ya mlinzi kwenye NFC ya simu yako au skani msimbo wa QR wa kifaa.</p>
+        
+        <div class="pairing-visual-container">
+          <div class="pairing-glow-circle animate-scan">
+            <span class="device-icon">⌚</span>
+          </div>
+          <div class="pqc-handshake-box" id="pqc-handshake-status">
+            <strong data-sw="Inasubiri uunganishaji wa kifaa..." data-en="Awaiting hardware handshake...">Inasubiri uunganishaji wa kifaa...</strong>
+            <span data-sw="Usalama: Attestation ya TPM 2.0" data-en="Protocol: TPM 2.0 Hardware Attestation">Usalama: Attestation ya TPM 2.0</span>
+          </div>
+        </div>
+
+        <div class="modal-footer justify-between">
+          <button class="btn btn-outline prev-step-btn" data-sw="Rudi Nyuma" data-en="Back">Rudi Nyuma</button>
+          <button class="btn btn-primary" id="btn-simulate-pair" data-sw="Kamilisha pairing (Simulate)" data-en="Pair Device (Simulate)">Kamilisha pairing (Simulate)</button>
+        </div>
+      </div>
+
+      <!-- ONBOARDING STEP 5: Contacts & Permissions -->
+      <div class="onboard-step" id="onboard-step-5">
+        <h2 data-sw="Mwisho: Ruhusa & Uridhaa" data-en="Final: Consents & Contacts">Mwisho: Ruhusa & Uridhaa</h2>
+        <p data-sw="Ili kuwezesha tahadhari za dharura, tunaomba uridhaa na ruhusa za kisheria." data-en="Enable real-time tracking, bypass DnD for critical alerts, and authorize rescue.">Ili kuwezesha tahadhari za dharura, tunaomba uridhaa na ruhusa za kisheria.</p>
+        
+        <div class="permissions-checklist">
+          <div class="checkbox-row">
+            <label class="checkbox-container">
+              <input type="checkbox" id="perm-location" checked disabled>
+              <span class="checkmark"></span>
+              <span class="checkbox-label">
+                <strong data-sw="Fuatilia Maeneo GPS" data-en="GPS Track Location (Always Allow)">Fuatilia Maeneo GPS</strong>
+                <small data-sw="Inaruhusu kuhesabu maeneo ya kijiografia." data-en="Required for geofencing triggers and trajectory alerts.">Inaruhusu kuhesabu maeneo ya kijiografia.</small>
+              </span>
+            </label>
+          </div>
+          <div class="checkbox-row">
+            <label class="checkbox-container">
+              <input type="checkbox" id="perm-alerts" checked>
+              <span class="checkmark"></span>
+              <span class="checkbox-label">
+                <strong data-sw="Tahadhari za Dharura (DnD Bypass)" data-en="Critical SOS Notifications">Tahadhari za Dharura (DnD Bypass)</strong>
+                <small data-sw="Tahadhari zitapiga kelele hata simu ikiwa kimya." data-en="Override device silence to sound local alerts.">Tahadhari zitapiga kelele hata simu ikiwa kimya.</small>
+              </span>
+            </label>
+          </div>
+          <div class="checkbox-row">
+            <label class="checkbox-container">
+              <input type="checkbox" id="perm-consent" checked>
+              <span class="checkmark"></span>
+              <span class="checkbox-label">
+                <strong data-sw="Uridhaa wa DPA (Section 33)" data-en="Legal DPA Parental Consent Form">Uridhaa wa DPA (Section 33)</strong>
+                <small data-sw="Uridhaa wa kukusanya data na kuziweka kwenye Blockchain." data-en="Anchor cryptographic consent signature onto Polygon Ledger.">Uridhaa wa kukusanya data na kuziweka kwenye Blockchain.</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer justify-between">
+          <button class="btn btn-outline prev-step-btn" data-sw="Rudi Nyuma" data-en="Back">Rudi Nyuma</button>
+          <button class="btn btn-primary" id="btn-ob-complete" data-sw="Kamilisha Usajili 🚀" data-en="Launch Guardian 🚀">Kamilisha Usajili 🚀</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Audio elements fallback or direct context generation -->
+  <!-- We will generate frequencies on the fly using Web Audio API for maximum customizability! -->
+  
+  <!-- JavaScript Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>
