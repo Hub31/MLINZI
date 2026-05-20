@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    --font-sans: var(--font-inter), system-ui, sans-serif;
+  }
+
+  * {
+    @apply border-mlinzi-secondary/20;
+  }
+
+  body {
+    @apply bg-mlinzi-dark text-white;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0a0f;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #00A86B;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #00cc7a;
+  }
+}
+
+@layer components {
+  .mlinzi-card {
+    @apply bg-mlinzi-secondary/50 border border-mlinzi-primary/20 rounded-xl p-4 backdrop-blur-sm;
+  }
+
+  .mlinzi-button {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200;
+    @apply bg-mlinzi-primary text-white hover:bg-mlinzi-primary/90 active:scale-95;
+  }
+
+  .mlinzi-button-danger {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200;
+    @apply bg-mlinzi-accent text-white hover:bg-mlinzi-accent/90 active:scale-95;
+  }
+
+  .mlinzi-input {
+    @apply w-full rounded-lg border border-mlinzi-primary/30 bg-mlinzi-dark/50 px-3 py-2 text-sm text-white placeholder:text-gray-500;
+    @apply focus:outline-none focus:ring-2 focus:ring-mlinzi-primary/50 focus:border-mlinzi-primary;
+  }
+
+  .mlinzi-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .mlinzi-badge-online {
+    @apply mlinzi-badge bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+
+  .mlinzi-badge-offline {
+    @apply mlinzi-badge bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+
+  .mlinzi-badge-warning {
+    @apply mlinzi-badge bg-yellow-500/20 text-yellow-400 border border-yellow-500/30;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-mlinzi-primary to-mlinzi-sky bg-clip-text text-transparent;
+  }
+
+  .animate-shield {
+    animation: shield-pulse 2s ease-in-out infinite;
+  }
+}
